@@ -1,27 +1,25 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
-import { useParams, notFound } from 'next/navigation';
+import { useRef, useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import SmoothScroll from '@/components/layout/SmoothScroll';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import Navigation from '@/components/layout/Navigation';
 import GrainOverlay from '@/components/ui/GrainOverlay';
 import ScrollProgress from '@/components/ui/ScrollProgress';
-import TextReveal from '@/components/ui/TextReveal';
 import PageTransition from '@/components/layout/PageTransition';
 import { getFlavorBySlug, getRelatedFlavors, flavors } from '@/data/flavors';
 import { formatPrice } from '@/lib/utils';
-import { gsap, ScrollTrigger } from '@/lib/gsap';
-import { useState } from 'react';
-import Navigation from '@/components/layout/Navigation';
 
 export default function FlavorDetailPage() {
   const params = useParams();
   const slug = params.slug as string;
   const flavor = getFlavorBySlug(slug);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
 
   const currentIndex = flavors.findIndex((f) => f.slug === slug);
@@ -29,29 +27,32 @@ export default function FlavorDetailPage() {
   const nextFlavor = currentIndex < flavors.length - 1 ? flavors[currentIndex + 1] : flavors[0];
 
   useEffect(() => {
-    if (!profileRef.current) return;
+    setIsMounted(true);
+  }, []);
 
-    const ctx = gsap.context(() => {
-      const bars = profileRef.current!.querySelectorAll('.profile-bar-fill');
-      gsap.fromTo(
-        bars,
-        { scaleX: 0 },
-        {
-          scaleX: 1,
-          duration: 1,
-          stagger: 0.15,
-          ease: 'power4.out',
-          scrollTrigger: {
-            trigger: profileRef.current,
-            start: 'top 80%',
-            toggleActions: 'play none none none',
-          },
-        }
-      );
-    }, profileRef);
+  useEffect(() => {
+    if (!isMounted || !profileRef.current) return;
 
-    return () => ctx.revert();
-  }, [slug]);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const bars = profileRef.current?.querySelectorAll('.profile-bar-fill');
+            bars?.forEach((bar, i) => {
+              setTimeout(() => {
+                (bar as HTMLElement).style.transform = 'scaleX(1)';
+              }, i * 150);
+            });
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(profileRef.current);
+
+    return () => observer.disconnect();
+  }, [isMounted, slug]);
 
   if (!flavor) {
     return (
@@ -75,9 +76,9 @@ export default function FlavorDetailPage() {
 
       <PageTransition>
         <main id="main-content">
-          {/* Hero */}
+          {/* Hero - REDUCED HEIGHT */}
           <section
-            className="relative min-h-[60vh] md:min-h-[70vh] flex items-end overflow-hidden"
+            className="relative min-h-[50vh] md:min-h-[55vh] flex items-end overflow-hidden"
             style={{
               background: `linear-gradient(to bottom, ${flavor.accentColor}20, ${flavor.accentColor}40)`,
             }}
@@ -99,20 +100,17 @@ export default function FlavorDetailPage() {
               />
             </div>
 
-            <div className="relative z-10 max-w-content mx-auto px-page pb-12 md:pb-20 w-full">
+            <div className="relative z-10 max-w-content mx-auto px-page pb-8 md:pb-12 w-full">
               <Link
                 href="/menu"
-                className="inline-flex items-center gap-2 font-body text-sm text-chocolate-light mb-6 hover:text-chocolate transition-colors"
+                className="inline-flex items-center gap-2 font-body text-sm text-chocolate-light mb-4 hover:text-chocolate transition-colors"
               >
                 ← Back to Menu
               </Link>
-              <TextReveal
-                as="h1"
-                className="font-display text-[clamp(3rem,7vw,8rem)] font-bold text-chocolate leading-[1.0] tracking-[-0.02em]"
-              >
+              <h1 className="font-display text-[clamp(2.5rem,6vw,6rem)] font-bold text-chocolate leading-[1.0] tracking-[-0.02em]">
                 {flavor.name}
-              </TextReveal>
-              <div className="flex items-center gap-4 mt-4">
+              </h1>
+              <div className="flex items-center gap-4 mt-3">
                 <span
                   className="inline-block w-3 h-3 rounded-full"
                   style={{ backgroundColor: flavor.accentColor }}
@@ -129,34 +127,34 @@ export default function FlavorDetailPage() {
             </div>
           </section>
 
-          {/* Content */}
-          <section className="py-section">
+          {/* Content - REDUCED TOP PADDING */}
+          <section className="py-10 md:py-16">
             <div className="max-w-content mx-auto px-page">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
                 {/* Left: Description */}
                 <div>
-                  <h2 className="font-display text-2xl font-semibold text-chocolate mb-6">
+                  <h2 className="font-display text-xl md:text-2xl font-semibold text-chocolate mb-4">
                     The Story
                   </h2>
-                  <p className="font-body text-[clamp(1rem,1.2vw,1.25rem)] text-chocolate-light leading-relaxed mb-10">
+                  <p className="font-body text-[clamp(0.95rem,1.1vw,1.1rem)] text-chocolate-light leading-relaxed mb-8">
                     {flavor.longDescription}
                   </p>
 
                   {/* Ingredients */}
-                  <h3 className="font-body text-xs uppercase tracking-[0.2em] text-chocolate-light mb-4">
+                  <h3 className="font-body text-xs uppercase tracking-[0.2em] text-chocolate-light mb-3">
                     Ingredients
                   </h3>
-                  <p className="font-body text-chocolate leading-relaxed mb-8">
+                  <p className="font-body text-chocolate leading-relaxed mb-6">
                     {flavor.ingredients.join(', ')}
                   </p>
 
                   {/* Allergens */}
                   {flavor.allergens.length > 0 && (
                     <>
-                      <h3 className="font-body text-xs uppercase tracking-[0.2em] text-chocolate-light mb-4">
+                      <h3 className="font-body text-xs uppercase tracking-[0.2em] text-chocolate-light mb-3">
                         Allergens
                       </h3>
-                      <div className="flex gap-2 mb-8">
+                      <div className="flex gap-2 mb-6">
                         {flavor.allergens.map((allergen) => (
                           <span
                             key={allergen}
@@ -185,7 +183,7 @@ export default function FlavorDetailPage() {
                 {/* Right: Flavor Profile */}
                 <div>
                   <div ref={profileRef}>
-                    <h2 className="font-display text-2xl font-semibold text-chocolate mb-8">
+                    <h2 className="font-display text-xl md:text-2xl font-semibold text-chocolate mb-6">
                       Flavor Profile
                     </h2>
 
@@ -194,7 +192,7 @@ export default function FlavorDetailPage() {
                       { label: 'Creaminess', value: flavor.creaminess },
                       { label: 'Richness', value: flavor.richness },
                     ].map((stat) => (
-                      <div key={stat.label} className="mb-6">
+                      <div key={stat.label} className="mb-5">
                         <div className="flex justify-between mb-2">
                           <span className="font-body text-sm text-chocolate-light uppercase tracking-wider">
                             {stat.label}
@@ -205,7 +203,7 @@ export default function FlavorDetailPage() {
                         </div>
                         <div className="w-full h-2 bg-cream-dark rounded-full overflow-hidden">
                           <div
-                            className="profile-bar-fill h-full rounded-full origin-left"
+                            className="profile-bar-fill h-full rounded-full transition-transform duration-1000 ease-out origin-left"
                             style={{
                               width: `${(stat.value / 5) * 100}%`,
                               backgroundColor: flavor.accentColor,
@@ -219,8 +217,8 @@ export default function FlavorDetailPage() {
 
                   {/* Pairs Well With */}
                   {relatedFlavors.length > 0 && (
-                    <div className="mt-12">
-                      <h3 className="font-display text-xl font-semibold text-chocolate mb-6">
+                    <div className="mt-10">
+                      <h3 className="font-display text-lg font-semibold text-chocolate mb-4">
                         Pairs Well With
                       </h3>
                       <div className="space-y-3">
@@ -256,11 +254,8 @@ export default function FlavorDetailPage() {
               </div>
 
               {/* Prev/Next Navigation */}
-              <div className="flex justify-between items-center mt-section pt-12 border-t border-[var(--border)]">
-                <Link
-                  href={`/menu/${prevFlavor.slug}`}
-                  className="group"
-                >
+              <div className="flex justify-between items-center mt-16 pt-10 border-t border-chocolate/10">
+                <Link href={`/menu/${prevFlavor.slug}`} className="group">
                   <span className="font-body text-xs text-chocolate-light uppercase tracking-wider block mb-1">
                     ← Previous
                   </span>
@@ -268,10 +263,7 @@ export default function FlavorDetailPage() {
                     {prevFlavor.name}
                   </span>
                 </Link>
-                <Link
-                  href={`/menu/${nextFlavor.slug}`}
-                  className="group text-right"
-                >
+                <Link href={`/menu/${nextFlavor.slug}`} className="group text-right">
                   <span className="font-body text-xs text-chocolate-light uppercase tracking-wider block mb-1">
                     Next →
                   </span>

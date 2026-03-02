@@ -77,55 +77,88 @@ export default function AboutPage() {
   const [isMounted, setIsMounted] = useState(false);
   const storyRef = useRef<HTMLDivElement>(null);
   const processRef = useRef<HTMLDivElement>(null);
-  const teamRef = useRef<HTMLDivElement>(null);
+  const teamScrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollTeamLeft, setCanScrollTeamLeft] = useState(false);
+  const [canScrollTeamRight, setCanScrollTeamRight] = useState(true);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // Simple intersection observer for animations
+  // Story paragraphs animation
   useEffect(() => {
-    if (!isMounted) return;
+    if (!isMounted || !storyRef.current) return;
 
-    const observerCallback = (entries: IntersectionObserverEntry[]) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('animate-in');
-        }
-      });
-    };
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const paragraphs = storyRef.current?.querySelectorAll('p');
+            paragraphs?.forEach((p, i) => {
+              setTimeout(() => {
+                (p as HTMLElement).style.opacity = '1';
+                (p as HTMLElement).style.transform = 'translateY(0)';
+              }, i * 150);
+            });
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
 
-    const observer = new IntersectionObserver(observerCallback, {
-      threshold: 0.1,
-    });
-
-    // Observe story paragraphs
-    if (storyRef.current) {
-      storyRef.current.querySelectorAll('p').forEach((el) => {
-        el.classList.add('opacity-0', 'translate-y-8', 'transition-all', 'duration-700', 'ease-out');
-        observer.observe(el);
-      });
-    }
-
-    // Observe process steps
-    if (processRef.current) {
-      processRef.current.querySelectorAll('.process-step').forEach((el, i) => {
-        (el as HTMLElement).style.transitionDelay = `${i * 150}ms`;
-        el.classList.add('opacity-0', 'translate-y-8', 'transition-all', 'duration-700', 'ease-out');
-        observer.observe(el);
-      });
-    }
-
-    // Observe team cards
-    if (teamRef.current) {
-      teamRef.current.querySelectorAll('.team-card').forEach((el, i) => {
-        (el as HTMLElement).style.transitionDelay = `${i * 100}ms`;
-        el.classList.add('opacity-0', 'translate-y-8', 'transition-all', 'duration-700', 'ease-out');
-        observer.observe(el);
-      });
-    }
-
+    observer.observe(storyRef.current);
     return () => observer.disconnect();
+  }, [isMounted]);
+
+  // Process steps animation
+  useEffect(() => {
+    if (!isMounted || !processRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const steps = processRef.current?.querySelectorAll('.process-step');
+            steps?.forEach((step, i) => {
+              setTimeout(() => {
+                (step as HTMLElement).style.opacity = '1';
+                (step as HTMLElement).style.transform = 'translateY(0)';
+              }, i * 150);
+            });
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(processRef.current);
+    return () => observer.disconnect();
+  }, [isMounted]);
+
+  // Team scroll functions
+  const checkTeamScroll = () => {
+    if (!teamScrollRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = teamScrollRef.current;
+    setCanScrollTeamLeft(scrollLeft > 10);
+    setCanScrollTeamRight(scrollLeft < scrollWidth - clientWidth - 10);
+  };
+
+  const scrollTeam = (direction: 'left' | 'right') => {
+    if (!teamScrollRef.current) return;
+    const scrollAmount = 200;
+    teamScrollRef.current.scrollBy({
+      left: direction === 'left' ? -scrollAmount : scrollAmount,
+      behavior: 'smooth',
+    });
+    setTimeout(checkTeamScroll, 300);
+  };
+
+  useEffect(() => {
+    const el = teamScrollRef.current;
+    if (!el) return;
+    el.addEventListener('scroll', checkTeamScroll, { passive: true });
+    checkTeamScroll();
+    return () => el.removeEventListener('scroll', checkTeamScroll);
   }, [isMounted]);
 
   return (
@@ -154,19 +187,28 @@ export default function AboutPage() {
           <section className="max-w-content mx-auto px-page mb-16 md:mb-24">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-start">
               <div ref={storyRef} className="space-y-5">
-                <p className="font-body text-[clamp(0.95rem,1.1vw,1.1rem)] text-chocolate-light leading-relaxed">
+                <p
+                  className="font-body text-[clamp(0.95rem,1.1vw,1.1rem)] text-chocolate-light leading-relaxed transition-all duration-700"
+                  style={{ opacity: 0, transform: 'translateY(20px)' }}
+                >
                   In 2018, Elena Rossi and Marcus Chen made a leap of faith. After
                   years in the corporate world — she in marketing, he in finance —
                   they decided to trade spreadsheets for ice cream scoops.
                 </p>
-                <p className="font-body text-[clamp(0.95rem,1.1vw,1.1rem)] text-chocolate-light leading-relaxed">
+                <p
+                  className="font-body text-[clamp(0.95rem,1.1vw,1.1rem)] text-chocolate-light leading-relaxed transition-all duration-700"
+                  style={{ opacity: 0, transform: 'translateY(20px)' }}
+                >
                   What started as a weekend hobby — experimenting with an old
                   Italian gelato machine in their Portland apartment — quickly
                   became an obsession. Friends couldn&apos;t get enough. Neighbors
                   started placing orders. A farmers market booth turned into a
                   devoted following.
                 </p>
-                <p className="font-body text-[clamp(0.95rem,1.1vw,1.1rem)] text-chocolate-light leading-relaxed">
+                <p
+                  className="font-body text-[clamp(0.95rem,1.1vw,1.1rem)] text-chocolate-light leading-relaxed transition-all duration-700"
+                  style={{ opacity: 0, transform: 'translateY(20px)' }}
+                >
                   Today, SCOÖP operates three beloved locations across Portland,
                   but the philosophy remains the same: source locally, craft
                   meticulously, and never, ever cut corners. Every flavor begins
@@ -200,7 +242,11 @@ export default function AboutPage() {
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
               >
                 {processSteps.map((step) => (
-                  <div key={step.number} className="process-step">
+                  <div
+                    key={step.number}
+                    className="process-step transition-all duration-700"
+                    style={{ opacity: 0, transform: 'translateY(30px)' }}
+                  >
                     <ImageReveal
                       src={step.image}
                       alt={step.title}
@@ -223,27 +269,86 @@ export default function AboutPage() {
             </div>
           </section>
 
-          {/* Team */}
+          {/* Team - HORIZONTAL SCROLL ON MOBILE */}
           <section className="max-w-content mx-auto px-page mb-16 md:mb-24">
-            <TextReveal
-              as="h2"
-              className="font-display text-[clamp(1.8rem,3.5vw,3rem)] font-bold text-chocolate mb-10 md:mb-12"
-            >
-              {'The Team'}
-            </TextReveal>
+            <div className="flex items-end justify-between mb-8 md:mb-12">
+              <TextReveal
+                as="h2"
+                className="font-display text-[clamp(1.8rem,3.5vw,3rem)] font-bold text-chocolate"
+              >
+                {'The Team'}
+              </TextReveal>
 
-            <div ref={teamRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {/* Mobile scroll arrows */}
+              <div className="flex items-center gap-2 md:hidden">
+                <button
+                  onClick={() => scrollTeam('left')}
+                  disabled={!canScrollTeamLeft}
+                  aria-label="Scroll left"
+                  className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all ${
+                    canScrollTeamLeft
+                      ? 'border-chocolate text-chocolate'
+                      : 'border-chocolate/20 text-chocolate/20'
+                  }`}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M15 18l-6-6 6-6" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => scrollTeam('right')}
+                  disabled={!canScrollTeamRight}
+                  aria-label="Scroll right"
+                  className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all ${
+                    canScrollTeamRight
+                      ? 'border-chocolate text-chocolate'
+                      : 'border-chocolate/20 text-chocolate/20'
+                  }`}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M9 18l6-6-6-6" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Mobile: Horizontal scroll */}
+            <div
+              ref={teamScrollRef}
+              className="flex gap-4 overflow-x-auto pb-4 md:hidden scrollbar-hide"
+              style={{ scrollSnapType: 'x mandatory' }}
+            >
               {team.map((member) => (
                 <div
                   key={member.name}
-                  className="team-card p-6 rounded-2xl bg-cream-dark text-center"
+                  className="flex-shrink-0 w-[200px] p-5 rounded-2xl bg-cream-dark text-center"
+                  style={{ scrollSnapAlign: 'start' }}
+                >
+                  <div className="w-12 h-12 rounded-full bg-chocolate text-cream flex items-center justify-center mx-auto mb-3">
+                    <span className="font-display text-base font-bold">
+                      {member.name.split(' ').map((n) => n[0]).join('')}
+                    </span>
+                  </div>
+                  <h3 className="font-display text-sm font-semibold text-chocolate mb-1">
+                    {member.name}
+                  </h3>
+                  <p className="font-body text-xs text-chocolate-light">
+                    {member.title}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop: Grid */}
+            <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-5">
+              {team.map((member) => (
+                <div
+                  key={member.name}
+                  className="p-6 rounded-2xl bg-cream-dark text-center"
                 >
                   <div className="w-14 h-14 rounded-full bg-chocolate text-cream flex items-center justify-center mx-auto mb-3">
                     <span className="font-display text-lg font-bold">
-                      {member.name
-                        .split(' ')
-                        .map((n) => n[0])
-                        .join('')}
+                      {member.name.split(' ').map((n) => n[0]).join('')}
                     </span>
                   </div>
                   <h3 className="font-display text-base font-semibold text-chocolate mb-1">

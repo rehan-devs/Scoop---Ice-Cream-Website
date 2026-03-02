@@ -1,7 +1,7 @@
 'use client';
 
-import { useRef, useMemo, Suspense } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { useRef, useMemo, Suspense, useEffect, useState } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Environment, Float } from '@react-three/drei';
 import * as THREE from 'three';
 
@@ -9,6 +9,11 @@ function IceCreamCone() {
   const groupRef = useRef<THREE.Group>(null);
   const mouse = useRef({ x: 0, y: 0 });
   const targetRotation = useRef({ x: 0, y: 0 });
+  const { size } = useThree();
+  
+  // Smaller scale on mobile
+  const isMobile = size.width < 768;
+  const scale = isMobile ? 0.5 : 0.65;
 
   const coneGeometry = useMemo(() => {
     return new THREE.ConeGeometry(0.7, 2.0, 32, 1, true);
@@ -47,13 +52,13 @@ function IceCreamCone() {
     mouse.current.x = pointer.x;
     mouse.current.y = pointer.y;
 
-    targetRotation.current.y = mouse.current.x * 0.4; 
-    targetRotation.current.x = -mouse.current.y * 0.25; 
+    targetRotation.current.y = mouse.current.x * 0.4;
+    targetRotation.current.x = -mouse.current.y * 0.25;
 
     groupRef.current.rotation.y +=
-      (targetRotation.current.y + state.clock.elapsedTime * 0.1 - groupRef.current.rotation.y) * 0.08; // Was 0.05
+      (targetRotation.current.y + state.clock.elapsedTime * 0.1 - groupRef.current.rotation.y) * 0.08;
     groupRef.current.rotation.x +=
-      (targetRotation.current.x - groupRef.current.rotation.x) * 0.08; 
+      (targetRotation.current.x - groupRef.current.rotation.x) * 0.08;
 
     const targetPosX = mouse.current.x * 0.15;
     const targetPosY = mouse.current.y * 0.1;
@@ -61,7 +66,7 @@ function IceCreamCone() {
     groupRef.current.position.y += (-0.5 + targetPosY - groupRef.current.position.y) * 0.05;
 
     const breathe = Math.sin(state.clock.elapsedTime * 1.5) * 0.008 + 1;
-    groupRef.current.scale.setScalar(0.65 * breathe);
+    groupRef.current.scale.setScalar(scale * breathe);
   });
 
   const scoopColors: [string, string, string] = ['#F5DEB3', '#E8A0BF', '#5C3D2E'];
@@ -73,7 +78,7 @@ function IceCreamCone() {
 
   return (
     <Float speed={1.5} rotationIntensity={0.15} floatIntensity={0.12}>
-      <group ref={groupRef} position={[0, -0.5, 0]} scale={0.65}>
+      <group ref={groupRef} position={[0, -0.5, 0]} scale={scale}>
         {/* Cone */}
         <mesh geometry={coneGeometry} position={[0, -0.3, 0]} rotation={[Math.PI, 0, 0]}>
           <meshStandardMaterial color="#C4956A" roughness={0.8} metalness={0.05} />
@@ -152,12 +157,21 @@ function IceCreamCone() {
 }
 
 export default function IceCreamScene() {
+  const [dpr, setDpr] = useState(1.5);
+
+  useEffect(() => {
+    // Lower DPR on mobile for better performance
+    if (window.innerWidth < 768) {
+      setDpr(1);
+    }
+  }, []);
+
   return (
     <Canvas
-      dpr={[1, 1.5]}
+      dpr={[1, dpr]}
       camera={{ position: [0, 0.8, 8], fov: 28 }}
-      style={{ background: 'transparent' }}
-      gl={{ alpha: true, antialias: true }}
+      style={{ background: 'transparent', touchAction: 'pan-y' }}
+      gl={{ alpha: true, antialias: true, powerPreference: 'high-performance' }}
     >
       <Suspense fallback={null}>
         <ambientLight intensity={0.5} />
