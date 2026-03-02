@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { gsap } from '@/lib/gsap';
+import Image from 'next/image';
 import MagneticButton from '@/components/ui/MagneticButton';
 import LinkHover from '@/components/ui/LinkHover';
 
@@ -10,7 +10,7 @@ const IceCreamScene = dynamic(() => import('@/components/three/IceCreamScene'), 
   ssr: false,
   loading: () => (
     <div className="w-full h-full flex items-center justify-center">
-      <span className="text-6xl animate-pulse">🍦</span>
+      <div className="w-32 h-32 rounded-full bg-accent-pink/20 animate-pulse" />
     </div>
   ),
 });
@@ -37,7 +37,6 @@ export default function Hero({ preloaderDone }: HeroProps) {
 
     const lines = [line1Ref.current, line2Ref.current, line3Ref.current].filter(Boolean);
 
-    // Simple CSS-based animation fallback
     lines.forEach((line, i) => {
       if (line) {
         setTimeout(() => {
@@ -71,7 +70,7 @@ export default function Hero({ preloaderDone }: HeroProps) {
     >
       <div className="max-w-content mx-auto px-page w-full grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-center">
         {/* Left Content */}
-        <div className="z-10">
+        <div className="z-10 order-2 lg:order-1">
           <h1 className="font-display text-[clamp(2.2rem,5vw,5.5rem)] font-bold leading-[1.08] tracking-[-0.02em] text-chocolate mb-4 md:mb-5">
             <span className="block overflow-hidden">
               <span
@@ -127,17 +126,27 @@ export default function Hero({ preloaderDone }: HeroProps) {
           </div>
         </div>
 
-        {/* Right: 3D Ice Cream */}
-        <div className="relative h-[300px] md:h-[380px] lg:h-[460px] mt-4 lg:mt-0">
+        {/* Right: 3D Ice Cream / Mobile Image */}
+        <div className="relative h-[280px] md:h-[380px] lg:h-[460px] order-1 lg:order-2">
           {/* Desktop: 3D Scene */}
           {isMounted && (
-            <div className="w-full h-full three-canvas-container hidden md:block">
+            <div className="w-full h-full three-canvas-container hidden lg:block">
               <IceCreamScene />
             </div>
           )}
-          {/* Mobile: Static emoji */}
-          <div className="w-full h-full flex items-center justify-center md:hidden">
-            <span className="text-[8rem] leading-none select-none">🍦</span>
+          
+          {/* Mobile & Tablet: Static Image */}
+          <div className="w-full h-full flex items-center justify-center lg:hidden">
+            <div className="relative w-[220px] h-[280px] md:w-[280px] md:h-[360px]">
+              <Image
+                src="https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=400&h=500&fit=crop"
+                alt="Delicious ice cream cone"
+                fill
+                className="object-cover rounded-3xl shadow-2xl"
+                sizes="(max-width: 768px) 220px, 280px"
+                priority
+              />
+            </div>
           </div>
         </div>
       </div>

@@ -1,58 +1,48 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { gsap, ScrollTrigger } from '@/lib/gsap';
 import MagneticButton from '@/components/ui/MagneticButton';
 
 export default function Footer() {
   const footerRef = useRef<HTMLElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    // Ensure footer is always visible
+    setIsVisible(true);
+  }, []);
 
   useEffect(() => {
     if (!footerRef.current) return;
 
-    const ctx = gsap.context(() => {
-      const heading = footerRef.current!.querySelector('.footer-heading');
-      if (heading) {
-        gsap.fromTo(
-          heading,
-          { y: 60, opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 1,
-            ease: 'power4.out',
-            scrollTrigger: {
-              trigger: heading,
-              start: 'top 85%',
-              toggleActions: 'play none none none',
-            },
-          }
-        );
-      }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const heading = footerRef.current?.querySelector('.footer-heading');
+            const cols = footerRef.current?.querySelectorAll('.footer-col');
 
-      const cols = footerRef.current!.querySelectorAll('.footer-col');
-      if (cols.length) {
-        gsap.fromTo(
-          cols,
-          { y: 40, opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            stagger: 0.1,
-            duration: 0.8,
-            ease: 'power4.out',
-            scrollTrigger: {
-              trigger: cols[0],
-              start: 'top 90%',
-              toggleActions: 'play none none none',
-            },
-          }
-        );
-      }
-    }, footerRef);
+            if (heading) {
+              (heading as HTMLElement).style.opacity = '1';
+              (heading as HTMLElement).style.transform = 'translateY(0)';
+            }
 
-    return () => ctx.revert();
+            cols?.forEach((col, i) => {
+              setTimeout(() => {
+                (col as HTMLElement).style.opacity = '1';
+                (col as HTMLElement).style.transform = 'translateY(0)';
+              }, i * 100);
+            });
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(footerRef.current);
+
+    return () => observer.disconnect();
   }, []);
 
   return (
@@ -60,11 +50,15 @@ export default function Footer() {
       ref={footerRef}
       className="bg-chocolate text-cream"
       role="contentinfo"
+      style={{ visibility: isVisible ? 'visible' : 'visible' }}
     >
-      <div className="max-w-content mx-auto px-page pt-section pb-12">
+      <div className="max-w-content mx-auto px-page pt-16 md:pt-24 pb-12">
         {/* Large CTA */}
-        <div className="mb-20 md:mb-32">
-          <h2 className="footer-heading font-display text-section font-bold leading-tight">
+        <div className="mb-16 md:mb-24">
+          <h2
+            className="footer-heading font-display text-[clamp(2rem,5vw,4rem)] font-bold leading-tight transition-all duration-700 ease-out"
+            style={{ opacity: 1, transform: 'translateY(0)' }}
+          >
             Come Visit Us
           </h2>
         </div>
@@ -72,7 +66,10 @@ export default function Footer() {
         {/* Footer Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
           {/* Column 1: About */}
-          <div className="footer-col">
+          <div
+            className="footer-col transition-all duration-700 ease-out"
+            style={{ opacity: 1, transform: 'translateY(0)' }}
+          >
             <Link href="/" className="font-display text-2xl font-bold mb-4 block">
               SCOÖP
             </Link>
@@ -83,7 +80,10 @@ export default function Footer() {
           </div>
 
           {/* Column 2: Navigation */}
-          <div className="footer-col">
+          <div
+            className="footer-col transition-all duration-700 ease-out"
+            style={{ opacity: 1, transform: 'translateY(0)' }}
+          >
             <h3 className="font-body text-sm uppercase tracking-[0.1em] mb-6 text-cream/40">
               Explore
             </h3>
@@ -101,7 +101,10 @@ export default function Footer() {
           </div>
 
           {/* Column 3: Contact */}
-          <div className="footer-col">
+          <div
+            className="footer-col transition-all duration-700 ease-out"
+            style={{ opacity: 1, transform: 'translateY(0)' }}
+          >
             <h3 className="font-body text-sm uppercase tracking-[0.1em] mb-6 text-cream/40">
               Contact
             </h3>
@@ -121,7 +124,10 @@ export default function Footer() {
           </div>
 
           {/* Column 4: Hours & Newsletter */}
-          <div className="footer-col">
+          <div
+            className="footer-col transition-all duration-700 ease-out"
+            style={{ opacity: 1, transform: 'translateY(0)' }}
+          >
             <h3 className="font-body text-sm uppercase tracking-[0.1em] mb-6 text-cream/40">
               Hours
             </h3>
@@ -142,7 +148,7 @@ export default function Footer() {
               <input
                 type="email"
                 placeholder="your@email.com"
-                className="flex-1 bg-transparent border border-[var(--border-dark)] rounded-full px-4 py-2 text-sm text-cream placeholder:text-cream/30 focus:outline-none focus:border-accent-pink transition-colors"
+                className="flex-1 bg-transparent border border-cream/20 rounded-full px-4 py-2 text-sm text-cream placeholder:text-cream/30 focus:outline-none focus:border-accent-pink transition-colors"
                 aria-label="Email for newsletter"
               />
               <button
@@ -156,7 +162,7 @@ export default function Footer() {
         </div>
 
         {/* Social & Copyright */}
-        <div className="border-t border-[var(--border-dark)] pt-8 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="border-t border-cream/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-6">
           <p className="font-body text-xs text-cream/40">
             © 2024 SCOÖP. All rights reserved.
           </p>

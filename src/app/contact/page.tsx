@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import SmoothScroll from '@/components/layout/SmoothScroll';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
@@ -13,6 +13,11 @@ import ContactForm from '@/components/sections/ContactForm';
 
 export default function ContactPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   return (
     <SmoothScroll>
@@ -25,13 +30,13 @@ export default function ContactPage() {
       <Navigation isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
 
       <PageTransition>
-        <main id="main-content" className="pt-32 md:pt-40 pb-section">
+        <main id="main-content" className="pt-32 md:pt-40 pb-16 md:pb-24">
           <div className="max-w-content mx-auto px-page">
             {/* Hero */}
             <div className="mb-16 md:mb-24">
               <TextReveal
                 as="h1"
-                className="font-display text-hero font-bold text-chocolate leading-[1.0] tracking-[-0.02em]"
+                className="font-display text-[clamp(2.2rem,5vw,5.5rem)] font-bold text-chocolate leading-[1.15] tracking-[-0.02em]"
               >
                 {'Get In Touch'}
               </TextReveal>
@@ -45,7 +50,7 @@ export default function ContactPage() {
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-16 lg:gap-20">
               {/* Form */}
               <div className="lg:col-span-3">
-                <ContactForm />
+                {isMounted && <ContactForm />}
               </div>
 
               {/* Contact Info */}

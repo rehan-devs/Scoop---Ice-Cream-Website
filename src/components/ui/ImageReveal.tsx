@@ -26,6 +26,16 @@ export default function ImageReveal({
 }: ImageRevealProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isRevealed, setIsRevealed] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    // Start revealed to ensure images show
+    const timer = setTimeout(() => {
+      setIsRevealed(true);
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -39,7 +49,7 @@ export default function ImageReveal({
           }
         });
       },
-      { threshold: 0.1 }
+      { threshold: 0.05, rootMargin: '50px' }
     );
 
     observer.observe(containerRef.current);
@@ -47,36 +57,29 @@ export default function ImageReveal({
     return () => observer.disconnect();
   }, []);
 
-  const clipPathHidden = variant === 'circle' 
-    ? 'circle(0% at 50% 50%)' 
-    : 'inset(100% 0% 0% 0%)';
-  
-  const clipPathRevealed = variant === 'circle' 
-    ? 'circle(50% at 50% 50%)' 
-    : 'inset(0% 0% 0% 0%)';
-
   return (
     <div
       ref={containerRef}
       className={`overflow-hidden ${className}`}
-      style={{
-        clipPath: isRevealed ? clipPathRevealed : clipPathHidden,
-        transition: 'clip-path 1.2s cubic-bezier(0.76, 0, 0.24, 1)',
-      }}
     >
-      <Image
-        src={src}
-        alt={alt}
-        width={width}
-        height={height}
-        className="w-full h-full object-cover"
+      <div
+        className="w-full h-full transition-all duration-1000 ease-[cubic-bezier(0.76,0,0.24,1)]"
         style={{
-          transform: isRevealed ? 'scale(1)' : 'scale(1.3)',
-          transition: 'transform 1.2s cubic-bezier(0.76, 0, 0.24, 1)',
+          opacity: isRevealed ? 1 : 0,
+          transform: isRevealed ? 'scale(1)' : 'scale(1.1)',
         }}
-        priority={priority}
-        sizes={sizes}
-      />
+      >
+        <Image
+          src={src}
+          alt={alt}
+          width={width}
+          height={height}
+          className="w-full h-full object-cover"
+          priority={priority}
+          sizes={sizes}
+          onLoad={() => setIsLoaded(true)}
+        />
+      </div>
     </div>
   );
 }

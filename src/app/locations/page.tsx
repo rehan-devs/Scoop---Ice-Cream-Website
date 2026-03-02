@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import SmoothScroll from '@/components/layout/SmoothScroll';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
@@ -9,7 +10,6 @@ import Navigation from '@/components/layout/Navigation';
 import GrainOverlay from '@/components/ui/GrainOverlay';
 import ScrollProgress from '@/components/ui/ScrollProgress';
 import TextReveal from '@/components/ui/TextReveal';
-import ImageReveal from '@/components/ui/ImageReveal';
 import MagneticButton from '@/components/ui/MagneticButton';
 import PageTransition from '@/components/layout/PageTransition';
 import { locations } from '@/data/locations';
@@ -30,7 +30,8 @@ export default function LocationsPage() {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add('animate-in');
+            (entry.target as HTMLElement).style.opacity = '1';
+            (entry.target as HTMLElement).style.transform = 'translateY(0)';
           }
         });
       },
@@ -39,7 +40,6 @@ export default function LocationsPage() {
 
     cardsRef.current.querySelectorAll('.location-card').forEach((el, i) => {
       (el as HTMLElement).style.transitionDelay = `${i * 200}ms`;
-      el.classList.add('opacity-0', 'translate-y-12', 'transition-all', 'duration-700', 'ease-out');
       observer.observe(el);
     });
 
@@ -57,7 +57,7 @@ export default function LocationsPage() {
       <Navigation isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
 
       <PageTransition>
-        <main id="main-content" className="pt-32 md:pt-40 pb-section">
+        <main id="main-content" className="pt-32 md:pt-40 pb-16 md:pb-24">
           <div className="max-w-content mx-auto px-page">
             {/* Hero */}
             <div className="mb-16 md:mb-24">
@@ -74,20 +74,28 @@ export default function LocationsPage() {
             </div>
 
             {/* Location Cards */}
-            <div ref={cardsRef} className="space-y-12 mb-section">
-              {locations.map((location) => (
+            <div ref={cardsRef} className="space-y-12 mb-16 md:mb-24">
+              {locations.map((location, index) => (
                 <div
                   key={location.name}
-                  className="location-card grid grid-cols-1 lg:grid-cols-2 gap-8 items-center p-8 md:p-12 rounded-2xl bg-cream-dark"
+                  className="location-card grid grid-cols-1 lg:grid-cols-2 gap-8 items-center p-6 md:p-10 rounded-2xl bg-cream-dark transition-all duration-700 ease-out"
+                  style={{
+                    opacity: 0,
+                    transform: 'translateY(40px)',
+                  }}
                 >
-                  <ImageReveal
-                    src={location.image}
-                    alt={`${location.name} storefront`}
-                    width={800}
-                    height={600}
-                    className="w-full aspect-[4/3] rounded-xl"
-                  />
+                  {/* Image */}
+                  <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden">
+                    <Image
+                      src={location.image}
+                      alt={`${location.name} storefront`}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                    />
+                  </div>
 
+                  {/* Info */}
                   <div>
                     <h2 className="font-display text-[clamp(1.5rem,3vw,2.5rem)] font-semibold text-chocolate mb-6">
                       {location.name}
@@ -139,14 +147,11 @@ export default function LocationsPage() {
             </div>
 
             {/* Catering CTA */}
-            <div className="text-center py-16 md:py-20 bg-cream-dark rounded-2xl px-page">
+            <div className="text-center py-16 md:py-20 bg-cream-dark rounded-2xl px-6 md:px-12">
               <span className="text-5xl mb-6 block">🎉</span>
-              <TextReveal
-                as="h2"
-                className="font-display text-[clamp(1.8rem,3.5vw,3rem)] font-bold text-chocolate mb-4"
-              >
-                {'We Also Cater!'}
-              </TextReveal>
+              <h2 className="font-display text-[clamp(1.8rem,3.5vw,3rem)] font-bold text-chocolate mb-4">
+                We Also Cater!
+              </h2>
               <p className="font-body text-chocolate-light leading-relaxed max-w-[500px] mx-auto mb-8">
                 Bringing the SCOÖP experience to your event. Weddings, corporate events,
                 birthday parties — we bring the scoop bar to you.
