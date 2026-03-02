@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Playfair_Display, DM_Sans } from 'next/font/google';
-import '@/styles/globals.css';
+import '../styles/globals.css';
+import ScrollToTop from '../components/layout/ScrollToTop';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -104,6 +105,7 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body bg-cream text-chocolate">
+        <ScrollToTop />
         <a href="#main-content" className="skip-to-content">
           Skip to content
         </a>

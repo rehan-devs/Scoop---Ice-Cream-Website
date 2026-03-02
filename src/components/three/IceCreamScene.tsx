@@ -11,9 +11,9 @@ function IceCreamCone() {
   const targetRotation = useRef({ x: 0, y: 0 });
   const { size } = useThree();
   
-  // Smaller scale on mobile
+  // Bigger scale on mobile (was 0.5, now 0.6)
   const isMobile = size.width < 768;
-  const scale = isMobile ? 0.5 : 0.65;
+  const scale = isMobile ? 0.6 : 0.65;
 
   const coneGeometry = useMemo(() => {
     return new THREE.ConeGeometry(0.7, 2.0, 32, 1, true);
@@ -162,7 +162,7 @@ export default function IceCreamScene() {
   useEffect(() => {
     // Lower DPR on mobile for better performance
     if (window.innerWidth < 768) {
-      setDpr(1);
+      setDpr(1.2);
     }
   }, []);
 

@@ -19,6 +19,11 @@
   --border-dark: rgba(255, 248, 240, 0.1);
 }
 
+/* Force scroll to top on page load */
+html {
+  scroll-behavior: auto !important;
+}
+
 * {
   margin: 0;
   padding: 0;

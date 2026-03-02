@@ -125,8 +125,8 @@ export default function Hero({ preloaderDone }: HeroProps) {
           </div>
         </div>
 
-        {/* Right: 3D Ice Cream - NOW ON ALL DEVICES */}
-        <div className="relative h-[220px] md:h-[350px] lg:h-[460px] order-1 lg:order-2">
+        {/* Right: 3D Ice Cream - BIGGER ON MOBILE */}
+        <div className="relative h-[280px] md:h-[380px] lg:h-[460px] order-1 lg:order-2">
           {isMounted && (
             <div className="w-full h-full three-canvas-container">
               <IceCreamScene />
