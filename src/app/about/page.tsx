@@ -11,7 +11,6 @@ import TextReveal from '@/components/ui/TextReveal';
 import ImageReveal from '@/components/ui/ImageReveal';
 import Counter from '@/components/ui/Counter';
 import PageTransition from '@/components/layout/PageTransition';
-import { gsap } from '@/lib/gsap';
 
 const processSteps = [
   {
@@ -75,81 +74,59 @@ const values = [
 
 export default function AboutPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const storyRef = useRef<HTMLDivElement>(null);
   const processRef = useRef<HTMLDivElement>(null);
   const teamRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!storyRef.current) return;
-    const ctx = gsap.context(() => {
-      const paragraphs = storyRef.current!.querySelectorAll('p');
-      gsap.fromTo(
-        paragraphs,
-        { y: 30, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          stagger: 0.15,
-          duration: 0.8,
-          ease: 'power4.out',
-          scrollTrigger: {
-            trigger: storyRef.current,
-            start: 'top 80%',
-            toggleActions: 'play none none none',
-          },
-        }
-      );
-    }, storyRef);
-    return () => ctx.revert();
+    setIsMounted(true);
   }, []);
 
+  // Simple intersection observer for animations
   useEffect(() => {
-    if (!processRef.current) return;
-    const ctx = gsap.context(() => {
-      const steps = processRef.current!.querySelectorAll('.process-step');
-      gsap.fromTo(
-        steps,
-        { y: 50, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          stagger: 0.2,
-          duration: 0.8,
-          ease: 'power4.out',
-          scrollTrigger: {
-            trigger: processRef.current,
-            start: 'top 70%',
-            toggleActions: 'play none none none',
-          },
-        }
-      );
-    }, processRef);
-    return () => ctx.revert();
-  }, []);
+    if (!isMounted) return;
 
-  useEffect(() => {
-    if (!teamRef.current) return;
-    const ctx = gsap.context(() => {
-      const cards = teamRef.current!.querySelectorAll('.team-card');
-      gsap.fromTo(
-        cards,
-        { y: 30, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          stagger: 0.1,
-          duration: 0.6,
-          ease: 'power4.out',
-          scrollTrigger: {
-            trigger: teamRef.current,
-            start: 'top 80%',
-            toggleActions: 'play none none none',
-          },
+    const observerCallback = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-in');
         }
-      );
-    }, teamRef);
-    return () => ctx.revert();
-  }, []);
+      });
+    };
+
+    const observer = new IntersectionObserver(observerCallback, {
+      threshold: 0.1,
+    });
+
+    // Observe story paragraphs
+    if (storyRef.current) {
+      storyRef.current.querySelectorAll('p').forEach((el) => {
+        el.classList.add('opacity-0', 'translate-y-8', 'transition-all', 'duration-700', 'ease-out');
+        observer.observe(el);
+      });
+    }
+
+    // Observe process steps
+    if (processRef.current) {
+      processRef.current.querySelectorAll('.process-step').forEach((el, i) => {
+        (el as HTMLElement).style.transitionDelay = `${i * 150}ms`;
+        el.classList.add('opacity-0', 'translate-y-8', 'transition-all', 'duration-700', 'ease-out');
+        observer.observe(el);
+      });
+    }
+
+    // Observe team cards
+    if (teamRef.current) {
+      teamRef.current.querySelectorAll('.team-card').forEach((el, i) => {
+        (el as HTMLElement).style.transitionDelay = `${i * 100}ms`;
+        el.classList.add('opacity-0', 'translate-y-8', 'transition-all', 'duration-700', 'ease-out');
+        observer.observe(el);
+      });
+    }
+
+    return () => observer.disconnect();
+  }, [isMounted]);
 
   return (
     <SmoothScroll>
@@ -163,17 +140,17 @@ export default function AboutPage() {
 
       <PageTransition>
         <main id="main-content" className="pt-28 md:pt-32">
-          {/* Hero — smaller heading, less bottom margin */}
+          {/* Hero */}
           <section className="max-w-content mx-auto px-page mb-12 md:mb-16">
             <TextReveal
               as="h1"
-              className="font-display text-[clamp(2.2rem,5vw,5.5rem)] font-bold text-chocolate leading-[1.08] tracking-[-0.02em] max-w-[800px]"
+              className="font-display text-[clamp(2.2rem,5vw,5.5rem)] font-bold text-chocolate leading-[1.15] tracking-[-0.02em] max-w-[800px]"
             >
               {'Every Scoop\nHas a Story'}
             </TextReveal>
           </section>
 
-          {/* Origin Story — tighter spacing */}
+          {/* Origin Story */}
           <section className="max-w-content mx-auto px-page mb-16 md:mb-24">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-start">
               <div ref={storyRef} className="space-y-5">
@@ -208,7 +185,7 @@ export default function AboutPage() {
             </div>
           </section>
 
-          {/* Our Process — tighter */}
+          {/* Our Process */}
           <section className="bg-cream-dark py-14 md:py-20 mb-16 md:mb-24">
             <div className="max-w-content mx-auto px-page">
               <TextReveal
@@ -246,7 +223,7 @@ export default function AboutPage() {
             </div>
           </section>
 
-          {/* Team — tighter */}
+          {/* Team */}
           <section className="max-w-content mx-auto px-page mb-16 md:mb-24">
             <TextReveal
               as="h2"
@@ -280,7 +257,7 @@ export default function AboutPage() {
             </div>
           </section>
 
-          {/* Stats — tighter */}
+          {/* Stats */}
           <section className="bg-chocolate text-cream py-14 md:py-20 mb-16 md:mb-24">
             <div className="max-w-content mx-auto px-page">
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
@@ -326,7 +303,7 @@ export default function AboutPage() {
             </div>
           </section>
 
-          {/* Values — tighter */}
+          {/* Values */}
           <section className="max-w-content mx-auto px-page pb-16 md:pb-24">
             <TextReveal
               as="h2"

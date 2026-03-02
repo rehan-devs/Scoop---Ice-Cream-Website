@@ -1,11 +1,10 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { gsap } from '@/lib/gsap';
 import MagneticButton from '@/components/ui/MagneticButton';
 import LinkHover from '@/components/ui/LinkHover';
-import { prefersReducedMotion } from '@/lib/utils';
 
 const IceCreamScene = dynamic(() => import('@/components/three/IceCreamScene'), {
   ssr: false,
@@ -27,41 +26,40 @@ export default function Hero({ preloaderDone }: HeroProps) {
   const line3Ref = useRef<HTMLSpanElement>(null);
   const taglineRef = useRef<HTMLParagraphElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    if (!preloaderDone) return;
-    if (prefersReducedMotion()) return;
+    setIsMounted(true);
+  }, []);
 
-    const ctx = gsap.context(() => {
-      const lines = [line1Ref.current, line2Ref.current, line3Ref.current].filter(Boolean);
+  useEffect(() => {
+    if (!preloaderDone || !isMounted) return;
 
-      gsap.fromTo(
-        lines,
-        { y: '110%' },
-        {
-          y: '0%',
-          duration: 1.2,
-          stagger: 0.12,
-          ease: 'power4.out',
-          delay: 0.2,
-        }
-      );
+    const lines = [line1Ref.current, line2Ref.current, line3Ref.current].filter(Boolean);
 
-      gsap.fromTo(
-        taglineRef.current,
-        { y: 30, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.8, ease: 'power4.out', delay: 0.8 }
-      );
+    // Simple CSS-based animation fallback
+    lines.forEach((line, i) => {
+      if (line) {
+        setTimeout(() => {
+          line.style.transform = 'translateY(0%)';
+        }, 200 + i * 120);
+      }
+    });
 
-      gsap.fromTo(
-        ctaRef.current,
-        { y: 20, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.6, ease: 'power4.out', delay: 1.0 }
-      );
-    }, sectionRef);
+    if (taglineRef.current) {
+      setTimeout(() => {
+        taglineRef.current!.style.opacity = '1';
+        taglineRef.current!.style.transform = 'translateY(0)';
+      }, 800);
+    }
 
-    return () => ctx.revert();
-  }, [preloaderDone]);
+    if (ctaRef.current) {
+      setTimeout(() => {
+        ctaRef.current!.style.opacity = '1';
+        ctaRef.current!.style.transform = 'translateY(0)';
+      }, 1000);
+    }
+  }, [preloaderDone, isMounted]);
 
   return (
     <section
@@ -76,19 +74,27 @@ export default function Hero({ preloaderDone }: HeroProps) {
         <div className="z-10">
           <h1 className="font-display text-[clamp(2.2rem,5vw,5.5rem)] font-bold leading-[1.08] tracking-[-0.02em] text-chocolate mb-4 md:mb-5">
             <span className="block overflow-hidden">
-              <span ref={line1Ref} className="block" style={{ transform: 'translateY(110%)' }}>
+              <span
+                ref={line1Ref}
+                className="block transition-transform duration-[1200ms] ease-[cubic-bezier(0.25,1,0.5,1)]"
+                style={{ transform: 'translateY(110%)' }}
+              >
                 Handcrafted
               </span>
             </span>
             <span className="block overflow-hidden">
-              <span ref={line2Ref} className="block" style={{ transform: 'translateY(110%)' }}>
+              <span
+                ref={line2Ref}
+                className="block transition-transform duration-[1200ms] ease-[cubic-bezier(0.25,1,0.5,1)]"
+                style={{ transform: 'translateY(110%)' }}
+              >
                 Ice Cream
               </span>
             </span>
             <span className="block overflow-hidden">
               <span
                 ref={line3Ref}
-                className="block text-accent-pink"
+                className="block text-accent-pink transition-transform duration-[1200ms] ease-[cubic-bezier(0.25,1,0.5,1)]"
                 style={{ transform: 'translateY(110%)' }}
               >
                 Made With Love
@@ -98,13 +104,18 @@ export default function Hero({ preloaderDone }: HeroProps) {
 
           <p
             ref={taglineRef}
-            className="font-body text-[clamp(0.85rem,1vw,1.05rem)] text-chocolate-light leading-relaxed max-w-[420px] mb-6 opacity-0"
+            className="font-body text-[clamp(0.85rem,1vw,1.05rem)] text-chocolate-light leading-relaxed max-w-[420px] mb-6 transition-all duration-800 ease-out"
+            style={{ opacity: 0, transform: 'translateY(30px)' }}
           >
             Small-batch artisan ice cream crafted from locally sourced ingredients.
             Every scoop tells a story.
           </p>
 
-          <div ref={ctaRef} className="opacity-0">
+          <div
+            ref={ctaRef}
+            className="transition-all duration-600 ease-out"
+            style={{ opacity: 0, transform: 'translateY(20px)' }}
+          >
             <MagneticButton>
               <LinkHover
                 href="/menu"
@@ -118,9 +129,13 @@ export default function Hero({ preloaderDone }: HeroProps) {
 
         {/* Right: 3D Ice Cream */}
         <div className="relative h-[300px] md:h-[380px] lg:h-[460px] mt-4 lg:mt-0">
-          <div className="w-full h-full three-canvas-container hidden md:block">
-            <IceCreamScene />
-          </div>
+          {/* Desktop: 3D Scene */}
+          {isMounted && (
+            <div className="w-full h-full three-canvas-container hidden md:block">
+              <IceCreamScene />
+            </div>
+          )}
+          {/* Mobile: Static emoji */}
           <div className="w-full h-full flex items-center justify-center md:hidden">
             <span className="text-[8rem] leading-none select-none">🍦</span>
           </div>

@@ -198,3 +198,9 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Animation utility for intersection observer */
+.animate-in {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}

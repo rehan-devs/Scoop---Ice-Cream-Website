@@ -13,37 +13,38 @@ import ImageReveal from '@/components/ui/ImageReveal';
 import MagneticButton from '@/components/ui/MagneticButton';
 import PageTransition from '@/components/layout/PageTransition';
 import { locations } from '@/data/locations';
-import { gsap } from '@/lib/gsap';
 
 export default function LocationsPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const cardsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!cardsRef.current) return;
-
-    const ctx = gsap.context(() => {
-      const cards = cardsRef.current!.querySelectorAll('.location-card');
-      gsap.fromTo(
-        cards,
-        { y: 60, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          stagger: 0.2,
-          duration: 0.8,
-          ease: 'power4.out',
-          scrollTrigger: {
-            trigger: cardsRef.current,
-            start: 'top 80%',
-            toggleActions: 'play none none none',
-          },
-        }
-      );
-    }, cardsRef);
-
-    return () => ctx.revert();
+    setIsMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!isMounted || !cardsRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('animate-in');
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    cardsRef.current.querySelectorAll('.location-card').forEach((el, i) => {
+      (el as HTMLElement).style.transitionDelay = `${i * 200}ms`;
+      el.classList.add('opacity-0', 'translate-y-12', 'transition-all', 'duration-700', 'ease-out');
+      observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, [isMounted]);
 
   return (
     <SmoothScroll>
@@ -62,7 +63,7 @@ export default function LocationsPage() {
             <div className="mb-16 md:mb-24">
               <TextReveal
                 as="h1"
-                className="font-display text-hero font-bold text-chocolate leading-[1.0] tracking-[-0.02em]"
+                className="font-display text-[clamp(2.2rem,5vw,5.5rem)] font-bold text-chocolate leading-[1.15] tracking-[-0.02em]"
               >
                 {'Find Us'}
               </TextReveal>
@@ -138,11 +139,11 @@ export default function LocationsPage() {
             </div>
 
             {/* Catering CTA */}
-            <div className="text-center py-section bg-cream-dark rounded-2xl px-page">
+            <div className="text-center py-16 md:py-20 bg-cream-dark rounded-2xl px-page">
               <span className="text-5xl mb-6 block">🎉</span>
               <TextReveal
                 as="h2"
-                className="font-display text-section font-bold text-chocolate mb-4"
+                className="font-display text-[clamp(1.8rem,3.5vw,3rem)] font-bold text-chocolate mb-4"
               >
                 {'We Also Cater!'}
               </TextReveal>

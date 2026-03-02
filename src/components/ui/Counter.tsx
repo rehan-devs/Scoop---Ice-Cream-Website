@@ -1,7 +1,6 @@
 'use client';
 
 import { useRef, useEffect, useState } from 'react';
-import { gsap, ScrollTrigger } from '@/lib/gsap';
 
 interface CounterProps {
   end: number;
@@ -19,36 +18,47 @@ export default function Counter({
   className = '',
 }: CounterProps) {
   const ref = useRef<HTMLSpanElement>(null);
-  const hasAnimated = useRef(false);
   const [displayValue, setDisplayValue] = useState(0);
+  const [hasAnimated, setHasAnimated] = useState(false);
 
   useEffect(() => {
-    if (!ref.current) return;
+    if (!ref.current || hasAnimated) return;
 
-    const ctx = gsap.context(() => {
-      ScrollTrigger.create({
-        trigger: ref.current,
-        start: 'top 85%',
-        once: true,
-        onEnter: () => {
-          if (hasAnimated.current) return;
-          hasAnimated.current = true;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !hasAnimated) {
+            setHasAnimated(true);
+            
+            const startTime = Date.now();
+            const durationMs = duration * 1000;
 
-          const counter = { value: 0 };
-          gsap.to(counter, {
-            value: end,
-            duration,
-            ease: 'power2.out',
-            onUpdate: () => {
-              setDisplayValue(Math.round(counter.value));
-            },
-          });
-        },
-      });
-    });
+            const animate = () => {
+              const elapsed = Date.now() - startTime;
+              const progress = Math.min(elapsed / durationMs, 1);
+              
+              // Ease out quad
+              const eased = 1 - (1 - progress) * (1 - progress);
+              const current = Math.round(eased * end);
+              
+              setDisplayValue(current);
 
-    return () => ctx.revert();
-  }, [end, duration]);
+              if (progress < 1) {
+                requestAnimationFrame(animate);
+              }
+            };
+
+            requestAnimationFrame(animate);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(ref.current);
+
+    return () => observer.disconnect();
+  }, [end, duration, hasAnimated]);
 
   return (
     <span ref={ref} className={className}>
