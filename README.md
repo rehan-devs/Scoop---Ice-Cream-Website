@@ -39,3 +39,4 @@ npm run dev
 # Build for production
 npm run build
 <!-- gitpulse:contribution index="1" timestamp="2026-05-14" -->
+<!-- gitpulse:contribution index="2" timestamp="2026-05-14" -->
